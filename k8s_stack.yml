@@ -1,0 +1,187 @@
+#Region eu-west-3 Paris
+#aprylypa-k8s-lab-stack
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+# vpc block
+  k8sVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.100.0.0/16" # Required
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_vpc
+  
+  k8sSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "eu-west-3a"
+      CidrBlock: "10.100.0.0/24" # Required
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_subnet_a
+      VpcId: !Ref k8sVPC # Required
+
+  k8sIG:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: aprylypa_internet_gateway
+  
+  IGAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref k8sIG
+      VpcId: !Ref k8sVPC # Required
+
+  k8sSubnetARouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref k8sVPC
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_route_table
+  
+  k8sRouteToInternet:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref k8sIG
+      RouteTableId: !Ref k8sSubnetARouteTable1
+    
+  k8sSubnetAssotiation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref k8sSubnetARouteTable1
+      SubnetId: !Ref k8sSubnetA
+
+# instances block
+
+  masterNodeA:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-062fdd189639d3e93"
+      InstanceType: "t2.medium"
+      KeyName: aprylypaKey
+      SecurityGroupIds:
+        - !Ref k8sCmnEC2SecGroup
+      SubnetId: !Ref k8sSubnetA
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_masterNodeA
+
+  workerNodeA:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-062fdd189639d3e93"
+      InstanceType: "t2.medium"
+      KeyName: aprylypaKey
+      SecurityGroupIds:
+        - !Ref k8sCmnEC2SecGroup
+      SubnetId: !Ref k8sSubnetA
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_workerNodeA
+
+  workerNodeB:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-062fdd189639d3e93"
+      InstanceType: "t2.medium"
+      KeyName: aprylypaKey
+      SecurityGroupIds:
+        - !Ref k8sCmnEC2SecGroup
+      SubnetId: !Ref k8sSubnetA
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_workerNodeB
+
+  workerNodeC:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: "ami-062fdd189639d3e93"
+      InstanceType: "t2.medium"
+      KeyName: aprylypaKey
+      SecurityGroupIds:
+        - !Ref k8sCmnEC2SecGroup
+      SubnetId: !Ref k8sSubnetA
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s_workerNodeC
+
+
+# security groups block
+
+  k8sCmnEC2SecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "aprylypa_k8sSecGroup" # Required
+      GroupName: "aprylypa_k8s"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0 
+      Tags:
+        - Key: Name
+          Value: aprylypa_k8s
+      VpcId: !Ref k8sVPC
+
+
+Outputs:
+  #master A
+  PublicIpMasterA:
+    Description: "Public ip of the Master Node in the cluster"
+    Value: !GetAtt masterNodeA.PublicIp
+    Export:
+      Name: MNAPublicIp
+
+  PrivateIpMasterA:
+    Description: "Private ip of the Master Node A in the cluster"
+    Value: !GetAtt masterNodeA.PrivateIp
+    Export:
+      Name: MNAPrivateIp
+
+  #worker A
+  PublicIpWorkerA:
+    Description: "Public ip of the Worker Node A in the cluster"
+    Value: !GetAtt workerNodeA.PublicIp
+    Export:
+      Name: WNAPublicIp
+
+  PrivateIpWorkerA:
+    Description: "Private ip of the Worker Node A in the cluster"
+    Value: !GetAtt workerNodeA.PrivateIp
+    Export:
+      Name: WNAPrivateIp
+
+  #worker B
+  PublicIpWorkerB:
+    Description: "Public ip of the Worker Node B in the cluster"
+    Value: !GetAtt workerNodeB.PublicIp
+    Export:
+      Name: WNBPublicIp
+
+  PrivateIpWorkerB:
+    Description: "Private ip of the Worker Node B in the cluster"
+    Value: !GetAtt workerNodeB.PrivateIp
+    Export:
+      Name: WNBPrivateIp
+
+  #worker C
+  PublicIpWorkerC:
+    Description: "Public ip of the Worker Node C in the cluster"
+    Value: !GetAtt workerNodeC.PublicIp
+    Export:
+      Name: WNCPublicIp
+
+  PrivateIpWorkerC:
+    Description: "Private ip of the Worker Node C in the cluster"
+    Value: !GetAtt workerNodeC.PrivateIp
+    Export:
+      Name: WNCPrivateIp

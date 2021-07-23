@@ -1,0 +1,7 @@
+[master]
+PublicIpMasterA ansible_host=13.36.166.30
+[docker]
+PublicIpMasterA ansible_host=13.36.166.30
+PublicIpWorkerA ansible_host=52.47.122.9
+PublicIpWorkerB ansible_host=13.36.168.57
+PublicIpWorkerC ansible_host=15.236.201.94

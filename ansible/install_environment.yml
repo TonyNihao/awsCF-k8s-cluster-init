@@ -1,0 +1,22 @@
+- name: install environment on the docker group machines
+  become: true
+  hosts: docker
+  vars:
+    docker_script: install_docker.sh
+    kube_script: install_kubernetes.sh
+
+  tasks:
+    - name: copy installation scripts on the hosts
+      copy: src=./scripts/ dest=/home/ec2-user/scripts/
+
+    - name: change permissions for docker file
+      command: chdir=/home/ec2-user/scripts/ chmod a+x {{docker_script}}
+
+    - name: change permissions for kube file
+      command: chdir=/home/ec2-user/scripts/ chmod a+x {{kube_script}}
+
+    - name: run docker installation script
+      command: chdir=/home/ec2-user/scripts/ ./{{docker_script}}
+
+    - name: run kubernetes installation script
+      command: chdir=/home/ec2-user/scripts/ ./{{kube_script}}
