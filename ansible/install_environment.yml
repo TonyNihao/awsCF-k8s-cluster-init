@@ -23,3 +23,10 @@
     
     - name: copy hosts file
       copy: src=./files/hosts dest=/etc/hosts 
+    
+- name: copy key file
+  become: true
+  hosts: master
+  tasks:
+    - name: copy key file
+      copy: src=./.ssh/aprylypaKey.pem dest=/home/ec2-user/.ssh/aprylypaKey.pem

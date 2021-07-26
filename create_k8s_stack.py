@@ -87,6 +87,12 @@ def create_ansible_host_file(public_ips):
     for key in public_ips:
         f.write(key + ' ansible_host=' + public_ips[key] + '\n')
     
+    #FIXME
+    # #write variables 
+    # f.write(docker_vars)
+    # for key in public_ip_keys:
+    #     hostname = key.replace('PublicIp').lower()
+    #     f.write("{0}={1}".format(hostname, hostname + '.' + local_domain))
 
     f.close()
 
@@ -98,7 +104,7 @@ def create_system_hosts_file(private_ips):
     f.write(local)
     
     for key in private_ips:
-        f.write(private_ips[key] + ' {0}.{1}} \n'.format(key.lower().replace('privateip', ''), local_domain))
+        f.write(private_ips[key] + ' {0}.{1} \n'.format(key.lower().replace('privateip', ''), local_domain))
 
     f.close()
 
