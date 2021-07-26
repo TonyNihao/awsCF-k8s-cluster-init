@@ -70,6 +70,7 @@ Resources:
       KeyName: aprylypaKey
       SecurityGroupIds:
         - !Ref k8sCmnEC2SecGroup
+        - !Ref k8sMasterSecurityGroup
       SubnetId: !Ref k8sSubnetA
       Tags:
         - Key: Name
@@ -83,6 +84,7 @@ Resources:
       KeyName: aprylypaKey
       SecurityGroupIds:
         - !Ref k8sCmnEC2SecGroup
+        - !Ref k8sWorkerSecurityGroup
       SubnetId: !Ref k8sSubnetA
       Tags:
         - Key: Name
@@ -96,6 +98,7 @@ Resources:
       KeyName: aprylypaKey
       SecurityGroupIds:
         - !Ref k8sCmnEC2SecGroup
+        - !Ref k8sWorkerSecurityGroup
       SubnetId: !Ref k8sSubnetA
       Tags:
         - Key: Name
@@ -109,6 +112,7 @@ Resources:
       KeyName: aprylypaKey
       SecurityGroupIds:
         - !Ref k8sCmnEC2SecGroup
+        - !Ref k8sWorkerSecurityGroup
       SubnetId: !Ref k8sSubnetA
       Tags:
         - Key: Name
@@ -127,12 +131,72 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0 
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 10.100.0.0/16
       Tags:
         - Key: Name
           Value: aprylypa_k8s
       VpcId: !Ref k8sVPC
 
+  k8sMasterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "security group with kubeadm master node"
+      GroupName: "aprylypa_k8s_master_node"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6443
+          ToPort: 6443
+          Description: "kubernetes api server"
+          CidrIp: 10.100.0.0/16
+        - IpProtocol: tcp
+          FromPort: 2379
+          ToPort: 2380
+          CidrIp: 10.100.0.0/16
+          Description: "etcd server client api"
+        - IpProtocol: tcp
+          FromPort: 10250
+          ToPort: 10250
+          CidrIp: 10.100.0.0/16
+          Description: "kublet api"
+        - IpProtocol: tcp
+          FromPort: 10251
+          ToPort: 10251
+          CidrIp: 10.100.0.0/16
+          Description: "kube-scheduler"
+        - IpProtocol: tcp
+          FromPort: 10252
+          ToPort: 10252
+          CidrIp: 10.100.0.0/16
+          Description: "kube-controller-manager"
+      Tags: 
+        - Key: Name
+          Value: "aprylypa_k8s"
+      VpcId: !Ref k8sVPC
 
+  k8sWorkerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "aprylypa_k8s_worker_node"
+      GroupDescription: "security group for worker nodes"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 10250
+          ToPort: 10250
+          CidrIp: 10.100.0.0/16
+          Description: "kublet api"
+        - IpProtocol: tcp
+          FromPort: 30000
+          ToPort: 32767
+          CidrIp: 10.100.0.0/16
+          Description: "Node PortServices"
+      Tags: 
+        - Key: Name
+          Value: "aprylypa_k8s"
+      VpcId: !Ref k8sVPC
+      
 Outputs:
   #master A
   PublicIpMasterA:

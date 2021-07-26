@@ -20,3 +20,6 @@
 
     - name: run kubernetes installation script
       command: chdir=/home/ec2-user/scripts/ ./{{kube_script}}
+    
+    - name: copy hosts file
+      copy: src=./files/hosts dest=/etc/hosts 

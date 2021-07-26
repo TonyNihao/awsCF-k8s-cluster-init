@@ -22,9 +22,14 @@ from time import sleep
 ### config section ###
 ## public ips keys 
 public_ip_keys = ["PublicIpMasterA", "PublicIpWorkerA", "PublicIpWorkerB", "PublicIpWorkerC"]
+private_ip_keys = ["PrivateIpMasterA", "PrivateIpWorkerA", "PrivateIpWorkerB", "PrivateIpWorkerC"]
 ##
 ## default CF template path
 template_path = './k8s_stack.yml'
+##
+## local domain name
+local_domain = 'aprylypa.local'
+##
 ### end of config section ###
 
 def create_stack(stack_name, template_path):
@@ -69,6 +74,7 @@ def get_outputs_values(stack_name, values):
 def create_ansible_host_file(public_ips):
     docker = '[docker]\n'
     master = '[master]\n'
+    docker_vars = '[docker:vars]\n'
     f = open('ansible/hosts', 'w')
     # write master group
     f.write(master)
@@ -80,8 +86,21 @@ def create_ansible_host_file(public_ips):
     f.write(docker)
     for key in public_ips:
         f.write(key + ' ansible_host=' + public_ips[key] + '\n')
+    
+
     f.close()
 
+
+def create_system_hosts_file(private_ips):
+    f = open('ansible/files/hosts', 'w')
+    local = '127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 \\n \
+             ::1         localhost6 localhost6.localdomain6 \n'
+    f.write(local)
+    
+    for key in private_ips:
+        f.write(private_ips[key] + ' {0}.{1}} \n'.format(key.lower().replace('privateip', ''), local_domain))
+
+    f.close()
 
 def run_playbooks():
     os.system('cd ansible && ansible-playbook install_environment.yml')
@@ -93,9 +112,11 @@ def main():
     print('Start create stack')
     create_stack(stack_name=stack_name, template_path=template_path)
     outputs = get_outputs_values(stack_name, values=public_ip_keys)
+    private_ips = get_outputs_values(stack_name, values=private_ip_keys)
     create_ansible_host_file(outputs)
+    create_system_hosts_file(private_ips)
     run_playbooks()
-    print(outputs)
+    print(outputs, private_ips)
 
 
 if __name__ == '__main__':
