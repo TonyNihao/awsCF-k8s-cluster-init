@@ -24,11 +24,47 @@
     - name: copy hosts file
       copy: src=./files/hosts dest=/etc/hosts 
     
-- name: copy key file and install network plugin
+- name: init the cluster on the master node
   become: true
   hosts: master
   tasks:
     - name: copy key file
       copy: src=./.ssh/aprylypaKey.pem dest=/home/ec2-user/.ssh/aprylypaKey.pem
+
+    - name: init command
+      shell: chdir=/home/ec2-user/ kubeadm init |tee init.output
+
+    - name: create config directory 
+      file: path=/home/ec2-user/.kube state=directory 
+    
+    - name: remove old config
+      shell: rm -rf /home/ec2-user/.kube/config
+    
+    - name: copy config file
+      shell: cp /etc/kubernetes/admin.conf /home/ec2-user/.kube/config
+
+    - name: change permissons for config file
+      file: owner=ec2-user path=/home/ec2-user/.kube/config
+
     - name: install network plugin
-      command: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+      become: false
+      shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+    - name: create join script
+      shell: chdir=/home/ec2-user/ tail -n 3 init.output > join.sh
+
+    - name: copy file to local host
+      fetch: src=/home/ec2-user/join.sh dest=./files/join_.sh flat=yes
+
+- name: join workers
+  become: true
+  hosts: worker
+  tasks:
+    - name: copy script
+      copy: src=./files/join_.sh dest=/home/ec2-user/join_.sh owner=ec2-user mode=0700
+ 
+    - name: run script
+      shell: /home/ec2-user/join_.sh
+
+    # - name: join to the cluster
+    #   command: chdir=/home/ec2-user/ {{ join_command.stdout }}

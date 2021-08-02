@@ -74,6 +74,7 @@ def get_outputs_values(stack_name, values):
 def create_ansible_host_file(public_ips):
     docker = '[docker]\n'
     master = '[master]\n'
+    worker = '[worker]\n'
     docker_vars = '[docker:vars]\n'
     f = open('ansible/hosts', 'w')
     # write master group
@@ -87,6 +88,12 @@ def create_ansible_host_file(public_ips):
     for key in public_ips:
         f.write(key + ' ansible_host=' + public_ips[key] + '\n')
     
+    #write worker group
+    f.write(worker)
+    for key in public_ips:
+            if 'Worker' in key:
+                f.write(key + ' ansible_host=' + public_ips[key] + '\n')
+
     #FIXME
     # #write variables 
     # f.write(docker_vars)

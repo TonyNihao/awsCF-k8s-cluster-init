@@ -1,0 +1,17 @@
+- name: test file for testig power of ansible
+  become: true
+  hosts: master
+  tasks:
+    - name: get stdout
+      shell: chdir=/home/ec2-user/ cat join.sh |tail -n 3
+      register: hello
+    
+    - debug: msg={{ hello.stdout }}
+  
+- name: another test
+  hosts: master
+  tasks:
+    - name: run command
+      command: chdir=/home/ec2-user/ {{ hello.stdout}}
+      register: out
+    - debug: msg={{ out.stdout }}
