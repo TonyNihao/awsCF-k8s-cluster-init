@@ -1,5 +1,5 @@
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 \n              ::1         localhost6 localhost6.localdomain6 
-10.100.0.47 mastera.aprylypa.local 
-10.100.0.202 workera.aprylypa.local 
-10.100.0.253 workerb.aprylypa.local 
-10.100.0.152 workerc.aprylypa.local 
+10.100.0.206 mastera.aprylypa.local 
+10.100.0.9 workera.aprylypa.local 
+10.100.0.231 workerb.aprylypa.local 
+10.100.0.71 workerc.aprylypa.local 
